@@ -1,5 +1,15 @@
 # Rook 설치 가이드
 
+> Rook 설치 yaml 파일은 manifest directory 안의 hcsctl binary를 실행하여 생성할 수 있습니다.
+
+## 목차
+
+- [전제조건](#Prerequisites)
+- [폐쇄망 설치 가이드](#폐쇄망-설치-가이드)
+- [일반 설치 가이드](#설치-가이드)
+- [업그레이드 가이드](https://github.com/tmax-cloud/hypercloud-sds/tree/release-1.3/docs/upgrade)
+- [삭제 가이드](#폐쇄망-설치-가이드)
+
 ## 구성 요소 및 버전
 
 ### Default rook-ceph 버전
@@ -44,40 +54,81 @@
   - 각 노드마다 OSD를 배포하도록 권장 (Taint 걸린 host 없는 걸 확인해야함)
   - 총 OSD 개수는 3개 이상으로 권장
   - CephFS 및 RBD pool 설정 시 Replication 개수 3개 권장
-5. ntp 패키지 설치 및 설정이 필요합니다.
+5. 시간 동기화를 위한 chrony 혹은 ntp 패키지 설치 및 설정이 필요합니다. 둘 중 하나만 해주시면 됩니다. Prolinux OS가 설치 되었을 경우에는 chrony가 기본 설치 되어 있습니다.
+  - chrony 설정
+    ``` shell
+    # ntp package가 설치 되어 있다면 삭제해야 함
+    $ sudo yum remove ntp
+    # chrony 설치
+    $ sudo yum install chrony
+    # 노드 재부팅 후에도 자동으로 시작할 수 있도록 설정
+    $ sudo service chronyd enable
 
-``` shell
-# ntp 설치
-$ yum install ntp
-# ntp 설정
-$ vi /etc/ntp.conf 
-  # 기존 서버 목록은 주석 처리
-  #server 0.rhel.pool.ntp.org iburst
-  #server 1.rhel.pool.ntp.org iburst
-  #server 2.rhel.pool.ntp.org iburst
-  #server 3.rhel.pool.ntp.org iburst
-  
-  # 한국 공용 타임서버 목록 설정
-  server 1.kr.pool.ntp.org
-  server 0.asia.pool.ntp.org
-  server 2.asia.pool.ntp.org
-  
-  # 폐쇄망인 경우, 노드 중 ntp 서버를 하나 지정하여 설정
-  # 내부 네트워크 대역에서 해당 서버를 타임서버로 참조하기 위한 설정
-  restrict 192.168.100.0 mask 255.255.255.0 nomodify notrap
-  server 127.127.1.0 # local clock
-  
-  # 폐쇄망인 경우, ntp client 설정
-  # client 서버들은 위의 지정된 서버 ip를 사용
-  server 192.168.100.120
-  
-# ntp 서비스 시작
-$ systemctl start ntpd
-# 노드 재부팅 후에도 자동으로 시작할 수 있도록 설정
-$ systemctl enable ntpd
-# ntp 작동 여부 확인
-$ ntpq -p
-```
+    # chrony 설정
+    $ vi /etc/chrony.conf
+      # 기존 서버 목록은 주석 처리
+      # server 0.centos.pool.ntp.org iburst
+      # server 1.centos.pool.ntp.org iburst
+      # server 2.centos.pool.ntp.org iburst
+      # server 3.centos.pool.ntp.org iburst
+
+      server time.bora.net iburst
+      server send.mx.cdnetworks.com iburst
+
+      # 폐쇄망인 경우 chrony server 설정
+      # local network 대역을 명시
+      # allow 10.0.0.0/8
+      # stratum 설정
+      # local stratum 3
+
+      # 폐쇄망인 경우 chrony client 설정
+      # chrony server ip를 추가함
+      # server 10.10.0.1 iburst
+    
+    # 폐쇄망인 경우 포트 123 열기
+    # $ firewall-cmd --permanent --zone=public --add-port=123/udp
+
+    # chrony 재구동
+    $ sudo systemctl restart chronyd
+    # 시간 동기과 설정 확인
+    $ timedatectl 
+    # chrony 정상 여부 확인
+    $ chronyc sources -v
+    ```
+  - ntp 설정
+    ``` shell
+    # ntp 설치
+    $ yum install ntp
+
+    # ntp 설정
+    $ vi /etc/ntp.conf 
+      # 기존 서버 목록은 주석 처리
+      #server 0.rhel.pool.ntp.org iburst
+      #server 1.rhel.pool.ntp.org iburst
+      #server 2.rhel.pool.ntp.org iburst
+      #server 3.rhel.pool.ntp.org iburst
+      
+      # 한국 공용 타임서버 목록 설정
+      server 1.kr.pool.ntp.org
+      server 0.asia.pool.ntp.org
+      server 2.asia.pool.ntp.org
+      
+      # 폐쇄망인 경우, 노드 중 ntp 서버를 하나 지정하여 설정
+      # 내부 네트워크 대역에서 해당 서버를 타임서버로 참조하기 위한 설정
+      # restrict 192.168.100.0 mask 255.255.255.0 nomodify notrap
+      # server 127.127.1.0 # local clock
+      
+      # 폐쇄망인 경우, ntp client 설정
+      # client 서버들은 위의 지정된 서버 ip를 사용
+      # server 192.168.100.120
+      
+    # ntp 서비스 시작
+    $ systemctl start ntpd
+    # 노드 재부팅 후에도 자동으로 시작할 수 있도록 설정
+    $ systemctl enable ntpd
+    # ntp 작동 여부 확인
+    $ ntpq -p
+    ```
 
 ## 폐쇄망 설치 가이드
 
@@ -120,9 +171,10 @@ $ ntpq -p
    $ sudo docker save quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION} > csi-attacher_${ATTACHER_VERSION}.tar
   ```
 
-  - hcsctl binary를 다운로드 합니다.
+  - 폐쇄망 설치용 hcsctl binary는 `/manifest/private-network` directory 안에 존재합니다.
+
   ``` shell
-  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl # 임시 url, github 으로 hyper-cloud storage 프로젝트 이전 후 업데이트 될 예정입니다.
+  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/private-network/hcsctl
   ```
 
   - `cluster.yaml` [설정 안내 파일](https://github.com/tmax-cloud/hypercloud-sds/blob/master/docs/ceph-cluster-setting.md)을 다운로드 합니다.
@@ -171,6 +223,12 @@ $ sudo docker push ${REGISTRY}/k8scsi/csi-attacher:${ATTACHER_VERSION}
 ```
 
 ## 설치 가이드
+
+> 폐쇄망이 아닌 일반 설치용 hcsctl binary는 `/manifest` directory 안에 존재합니다.
+
+``` shell
+$ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
+```
 
 0. [rook yaml 생성](#Step-0-rook-yaml-생성)
 1. [rook yaml 이미지 정보 수정](#Step-1-rook-yaml-이미지-정보-수정)
@@ -282,6 +340,10 @@ $ sudo docker push ${REGISTRY}/k8scsi/csi-attacher:${ATTACHER_VERSION}
 	- rook-ceph-osd-prepare
 	- rook-discover
   - cluster.yaml 파일 설정에 따라서 배포된 pod 의 개수는 다를 수 있습니다.
+
+## 버전 업그레이드 가이드
+
+- rook-ceph `v1.2.7` 에서부터 `v1.3.6`으로 업그레이드 가이드는 [이 문서](https://github.com/tmax-cloud/hypercloud-sds/tree/release-1.3/docs/upgrade)를 참고 해주시길 바랍니다.
 
 ## 삭제 가이드
 
