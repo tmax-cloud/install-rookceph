@@ -8,7 +8,7 @@
 - [폐쇄망 설치 가이드](#폐쇄망-설치-가이드)
 - [일반 설치 가이드](#설치-가이드)
 - [업그레이드 가이드](https://github.com/tmax-cloud/hypercloud-sds/tree/release-1.3/docs/upgrade)
-- [삭제 가이드](#폐쇄망-설치-가이드)
+- [삭제 가이드](#삭제-가이드)
 
 ## 구성 요소 및 버전
 
