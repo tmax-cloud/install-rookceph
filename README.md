@@ -26,11 +26,12 @@
 - [quay.io/k8scsi/csi-provisioner:v1.6.0](https://quay.io/repository/k8scsi/csi-provisioner?tab=tags)
 - [quay.io/k8scsi/csi-snapshotter:v2.1.1](https://quay.io/repository/k8scsi/csi-snapshotter?tab=tags)
 - [quay.io/k8scsi/csi-attacher:v2.1.0](https://quay.io/repository/k8scsi/csi-attacher?tab=tags)
+- [quay.io/k8scsi/snapshot-controller:v2.0.1](https://quay.io/repository/k8scsi/snapshot-controller?tag=latest&tab=tags)
 
 ## Prerequisites
 
-1. 쿠버네티스 클러스터가 구축되어 있어야 합니다.
-2. k8s, kubectl **v1.17 이상** 버전이 필요합니다.
+1. 쿠버네티스 클러스터 **v1.17 이상** 버전이 구축되어 있어야 합니다.
+2. kubectl **v1.17 이상** 버전이 필요합니다.
 3. 하드웨어 사양 확인이 필요합니다.
   - **production용으로 배포될 경우 해당 사항들을 반드시 지켜주셔야 ceph가 정상적인 성능 및 안정성을 제공합니다.**
   - 또한 사양 확인시에 설치될 노드의 하드웨어 정보들을 별도로 메모해두실 것을 권장합니다.
@@ -147,34 +148,39 @@
   $ export PROVISIONER_VERSION=v1.6.0
   $ export SNAPSHOTTER_VERSION=v2.1.1
   $ export ATTACHER_VERSION=v2.1.0
+  $ export SNAPSHOT_CONTROLLER_VERSION=v2.0.1
   $ cd $ROOK_HOME
   ```
 
   - 외부 네트워크 통신이 가능한 환경에서 필요한 이미지를 다운로드 합니다.
   ```shell
-   $ sudo docker pull ceph/ceph:${CEPH_VERSION}
-   $ sudo docker pull rook/ceph:${ROOK_VERSION}
-   $ sudo docker pull quay.io/cephcsi/cephcsi:${CEPHCSI_VERSION}
-   $ sudo docker pull quay.io/k8scsi/csi-node-driver-registrar:${NODE_DRIVER_VERSION}
-   $ sudo docker pull quay.io/k8scsi/csi-resizer:${RESIZER_VERSION}
-   $ sudo docker pull quay.io/k8scsi/csi-provisioner:${PROVISIONER_VERSION}
-   $ sudo docker pull quay.io/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION}
-   $ sudo docker pull quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION}
+  $ sudo docker pull ceph/ceph:${CEPH_VERSION}
+  $ sudo docker pull rook/ceph:${ROOK_VERSION}
+  $ sudo docker pull quay.io/cephcsi/cephcsi:${CEPHCSI_VERSION}
+  $ sudo docker pull quay.io/k8scsi/csi-node-driver-registrar:${NODE_DRIVER_VERSION}
+  $ sudo docker pull quay.io/k8scsi/csi-resizer:${RESIZER_VERSION}
+  $ sudo docker pull quay.io/k8scsi/csi-provisioner:${PROVISIONER_VERSION}
+  $ sudo docker pull quay.io/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION}
+  $ sudo docker pull quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION}
+  $ sudo docker pull quay.io/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_VERSION}
 
-   $ sudo docker save ceph/ceph:${CEPH_VERSION} > ceph_${CEPH_VERSION}.tar
-   $ sudo docker save rook/ceph:${ROOK_VERSION} > rook-ceph_${ROOK_VERSION}.tar
-   $ sudo docker save quay.io/cephcsi/cephcsi:${CEPHCSI_VERSION} > cephcsi_${CEPHCSI_VERSION}.tar
-   $ sudo docker save quay.io/k8scsi/csi-node-driver-registrar:${NODE_DRIVER_VERSION} > csi-node-driver-registrar_${NODE_DRIVER_VERSION}.tar
-   $ sudo docker save quay.io/k8scsi/csi-resizer:${RESIZER_VERSION} > csi-resizer_${RESIZER_VERSION}.tar
-   $ sudo docker save quay.io/k8scsi/csi-provisioner:${PROVISIONER_VERSION} > csi-provisioner_${PROVISIONER_VERSION}.tar
-   $ sudo docker save quay.io/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION} > csi-snapshotter_${SNAPSHOTTER_VERSION}.tar
-   $ sudo docker save quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION} > csi-attacher_${ATTACHER_VERSION}.tar
+  $ sudo docker save ceph/ceph:${CEPH_VERSION} > ceph_${CEPH_VERSION}.tar
+  $ sudo docker save rook/ceph:${ROOK_VERSION} > rook-ceph_${ROOK_VERSION}.tar
+  $ sudo docker save quay.io/cephcsi/cephcsi:${CEPHCSI_VERSION} > cephcsi_${CEPHCSI_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/csi-node-driver-registrar:${NODE_DRIVER_VERSION} > csi-node-driver-registrar_${NODE_DRIVER_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/csi-resizer:${RESIZER_VERSION} > csi-resizer_${RESIZER_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/csi-provisioner:${PROVISIONER_VERSION} > csi-provisioner_${PROVISIONER_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION} > csi-snapshotter_${SNAPSHOTTER_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION} > csi-attacher_${ATTACHER_VERSION}.tar
+  $ sudo docker save quay.io/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_VERSION} > snapshot-controller_${SNAPSHOT_CONTROLLER_VERSION}.tar
   ```
 
-  - 폐쇄망 설치용 hcsctl binary는 `/manifest/private-network` directory 안에 존재합니다.
+  - hcsctl binary는 `/manifest` directory 안에 존재합니다.
 
   ``` shell
-  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/private-network/hcsctl
+  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
+  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/rook.test # (optional) rook test binary로 설치 검증할 경우
+  $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/manifest/test-manifests # (optional) rook test binary로 설치 검증할 경우
   ```
 
   - `cluster.yaml` [설정 안내 파일](https://github.com/tmax-cloud/hypercloud-sds/blob/release-1.4/docs/ceph-cluster-setting.md)을 다운로드 합니다.
@@ -200,6 +206,7 @@ $ sudo docker load < csi-resizer_${RESIZER_VERSION}.tar
 $ sudo docker load < csi-provisioner_${PROVISIONER_VERSION}.tar
 $ sudo docker load < csi-snapshotter_${SNAPSHOTTER_VERSION}.tar
 $ sudo docker load < csi-attacher_${ATTACHER_VERSION}.tar
+$ sudo docker load < snapshot-controller_${SNAPSHOT_CONTROLLER_VERSION}.tar
 
 $ export REGISTRY=123.456.789.00:5000
 
@@ -211,6 +218,7 @@ $ sudo docker tag quay.io/k8scsi/csi-resizer:${RESIZER_VERSION} ${REGISTRY}/k8sc
 $ sudo docker tag quay.io/k8scsi/csi-provisioner:${PROVISIONER_VERSION} ${REGISTRY}/k8scsi/csi-provisioner:${PROVISIONER_VERSION}
 $ sudo docker tag quay.io/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION} ${REGISTRY}/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION}
 $ sudo docker tag quay.io/k8scsi/csi-attacher:${ATTACHER_VERSION} ${REGISTRY}/k8scsi/csi-attacher:${ATTACHER_VERSION}
+$ sudo docker tag quay.io/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_VERSION} ${REGISTRY}/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_VERSION}
 
 $ sudo docker push ${REGISTRY}/ceph/ceph:${CEPH_VERSION}
 $ sudo docker push ${REGISTRY}/rook/ceph:${ROOK_VERSION}
@@ -220,6 +228,7 @@ $ sudo docker push ${REGISTRY}/k8scsi/csi-resizer:${RESIZER_VERSION}
 $ sudo docker push ${REGISTRY}/k8scsi/csi-provisioner:${PROVISIONER_VERSION}
 $ sudo docker push ${REGISTRY}/k8scsi/csi-snapshotter:${SNAPSHOTTER_VERSION}
 $ sudo docker push ${REGISTRY}/k8scsi/csi-attacher:${ATTACHER_VERSION}
+$ sudo docker push ${REGISTRY}/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_VERSION}
 ```
 
 ## 설치 가이드
@@ -256,27 +265,20 @@ $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
 
 ## Step 1. rook yaml 이미지 정보 수정
 
-- 목적 : `폐쇄망 설치 시 rook yaml에 이미지 registry 버전 정보를 수정`
+- 목적 : `폐쇄망 설치 시 rook yaml에 이미지 registry 정보 수정`
 - 순서 : 
-  - 폐쇄망에서 설치를 진행하여 별도의 image registry를 사용하는 경우 registry 정보를 추가로  설정해줍니다.
+  - 폐쇄망에서 설치를 진행하여 별도의 image registry를 사용하는 경우 registry 정보를 수정해줍니다.
   ``` shell
-  $ sed -i 's/{registry_endpoint}/'${REGISTRY}'/g'  $inventory_name/rook/*.yaml
-  $ sed -i 's/{registry_endpoint}/'${REGISTRY}'/g' $inventory_name/cdi/*.yaml # cdi 설치도 함께하는 경우
-  ```
-  - 폐쇄망 설치시에는 아래의 command를 수정하여 사용하고자 하는 image 버전 정보를 수정합니다.
-  ``` shell
-  $ sed -i 's/{ceph_version}/'${CEPH_VERSION}'/g'  $inventory_name/rook/*.yaml
-  $ sed -i 's/{cephcsi_version}/'${CEPHCSI_VERSION}'/g'  $inventory_name/rook/*.yaml
-  $ sed -i 's/{node_driver_version}/'${NODE_DRIVER_VERSION}'/g' $inventory_name/rook/*.yaml
-  $ sed -i 's/{resizer_version}/'${RESIZER_VERSION}'/g'  $inventory_name/rook/*.yaml
-  $ sed -i 's/{provisioner_version}/'${PROVISIONER_VERSION}'/g' $inventory_name/rook/*.yaml
-  $ sed -i 's/{snapshotter_version}/'${SNAPSHOTTER_VERSION}'/g' $inventory_name/rook/*.yaml
-  $ sed -i 's/{attacher_version}/'${ATTACHER_VERSION}'/g'  $inventory_name/rook/*.yaml
-  $ sed -i 's/{rook_version}/'${ROOK_VERSION}'/g'  $inventory_name/rook/*.yaml
+  $ sed -i 's/quay.io/'${REGISTRY}'/g' hack/inventory/*/rook/*.yaml
+  $ sed -i 's/ceph\/ceph/'${REGISTRY}'\/ceph\/ceph/g' hack/inventory/*/rook/*.yaml
+  $ sed -i 's/rook\/ceph/'${REGISTRY}'\/rook\/ceph/g' hack/inventory/*/rook/*.yaml
+  $ sed -i 's/#\sROOK_CSI_/ROOK_CSI_/g' hack/inventory/*/rook/*.yaml
+
+  # cdi도 설치하는 경우
+  $ sed -i 's/kubevirt\//'${REGISTRY}'\/kubevirt\//g' hack/inventory/*/cdi/*.yaml
   ```
 - 비고 :
-  - 일반 설치용 hcsctl 바이너리를 다운로드 받으신 경우에는 docker hub 이나 quay.io registry 정보와 권장 이미지 버전이 yaml 파일에 기입되어 있으므로 step1은 건너뛰셔도 무방합니다.
-  - 폐쇄망 설치용 hcsctl 바이너리의 경우에는 image registry 정보와 버전 정보가 고정되지 않은 yaml이 제공되기 때문에 step1 과정이 반드시 필요합니다. 
+  - 이미지 버전 변경을 권장하지 않으나 필요한 경우에는 `operator.yaml` 파일과 `rook/cluster.yaml` 에서 수정하시면 됩니다.
 
 ## Step 2. rook yaml 설치 정보 수정
 
@@ -325,8 +327,18 @@ $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
   ```
   - ./rook.test
 	  - 정상 사용 가능 여부 확인을 위해, 여러 시나리오 테스트를 수행할 수 있습니다.
+    - `manifest/test-manifests` 의 yaml 파일들이 필요합니다.
+    ``` shell
+    $ wget https://github.com/tmax-cloud/install-rookceph/manifest/rook.test
+    $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/manifest/test-manifests
+    $ ./rook.test
+    ```
   - ./cdi.test
     - cdi test는 폐쇄망 환경에서 사용하실 수 없습니다.
+    ``` shell
+    $ wget https://github.com/tmax-cloud/install-rookceph/manifest/cdi.test
+    $ ./cdi.test
+    ```
 - 비고 :
   - 아래 pod 들이 모두 배포되고, status 가 running 인지 확인합니다.
 	- csi-cephfsplugin
