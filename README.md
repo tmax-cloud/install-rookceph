@@ -63,7 +63,7 @@
     # chrony 설치
     $ sudo yum install chrony
     # 노드 재부팅 후에도 자동으로 시작할 수 있도록 설정
-    $ sudo service chronyd enable
+    $ sudo systemctl enable chronyd
 
     # chrony 설정
     $ vi /etc/chrony.conf
