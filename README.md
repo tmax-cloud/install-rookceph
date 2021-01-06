@@ -32,7 +32,9 @@
 
 1. 쿠버네티스 클러스터 **v1.17 이상** 버전이 구축되어 있어야 합니다.
 2. kubectl **v1.17 이상** 버전이 필요합니다.
-3. 하드웨어 사양 확인이 필요합니다.
+3. ceph OSD를 배포할 노드에는 **`lvm2` package** 가 설치되어 있어야 합니다.
+  - 예를 들어, `cluster.yaml` 설정 시에 `spec.storage.useAllNodes`가 true 로 배포할 예정이라면 모든 노드에 lvm2 패키지 설치가 필요합니다.
+4. 하드웨어 사양 확인이 필요합니다.
   - **production용으로 배포될 경우 해당 사항들을 반드시 지켜주셔야 ceph가 정상적인 성능 및 안정성을 제공합니다.**
   - 또한 사양 확인시에 설치될 노드의 하드웨어 정보들을 별도로 메모해두실 것을 권장합니다.
     - 설치전 yaml 파일 수정 단계에서 `cluster.yaml` 파일과 `file_system.yaml` 파일의 `spec` 아래 resource 설정하는 부분에 ceph pod 들이 사용할 resource의 limit과 request 값을 하드웨어 사양에 맞춰서 설정해주셔야 합니다. 이와 관련해서 아래에 좀 더 자세한 설명이 있습니다.
@@ -51,11 +53,11 @@
   - `MDS` 관련 요건
     - CPU: 2GHz CPU 4 core 이상 권장
     - Memory: 4GB 메모리 이상 권장
-4. 권장사항 확인이 필요합니다.
+5. 권장사항 확인이 필요합니다.
   - 각 노드마다 OSD를 배포하도록 권장 (Taint 걸린 host 없는 걸 확인해야함)
   - 총 OSD 개수는 3개 이상으로 권장
   - CephFS 및 RBD pool 설정 시 Replication 개수 3개 권장
-5. 시간 동기화를 위한 chrony 혹은 ntp 패키지 설치 및 설정이 필요합니다. 둘 중 하나만 해주시면 됩니다. Prolinux OS가 설치 되었을 경우에는 chrony가 기본 설치 되어 있습니다.
+6. 시간 동기화를 위한 chrony 혹은 ntp 패키지 설치 및 설정이 필요합니다. 둘 중 하나만 해주시면 됩니다. Prolinux OS가 설치 되었을 경우에는 chrony가 기본 설치 되어 있습니다.
   - chrony 설정
     ``` shell
     # ntp package가 설치 되어 있다면 삭제해야 함
