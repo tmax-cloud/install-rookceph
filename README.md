@@ -53,6 +53,35 @@
   - `MDS` 관련 요건
     - CPU: 2GHz CPU 4 core 이상 권장
     - Memory: 4GB 메모리 이상 권장
+  - `CSI` 관련 요건
+    - yaml 파일 수정 단계에서 `operator.yaml` 파일의 `ConfigMap.data`에서 다음 필드들의 주석들을 해제하여 `CSI` pod의 컨테이너들의 resource를 설정하는 것을 권장합니다.
+      - `CSI_RBD_PROVISIONER_RESOURCE`
+      - `CSI_RBD_PLUGIN_RESOURCE`
+      - `CSI_CEPHFS_PROVISIONER_RESOURCE`
+      - `CSI_CEPHFS_PLUGIN_RESOURCE`
+    - resource의 권장 requests, limit 값은 주석 값과 같으며, 나열하면 다음과 같습니다. (requests memory, requests cpu, limits memory, limits cpu 순)
+      - `CSI_RBD_PROVISIONER_RESOURCE`
+        - `csi-provisioner`: 128Mi, 100m, 256Mi, 200m
+        - `csi-resizer`: 128Mi, 100m, 256Mi, 200m
+        - `csi-attacher`: 128Mi, 100m, 256Mi, 200m
+        - `csi-snapshotter`: 128Mi, 100m, 256Mi, 200m
+        - `csi-rbdpugin`: 512Mi, 250m, 1Gi, 500m
+        - `liveness-prometheus`: 128Mi, 50m, 256Mi, 100m
+      - `CSI_RBD_PLUGIN_RESOURCE`
+        - `driver-registrar`: 128Mi, 50m, 256Mi, 100m
+        - `csi-rbdplugin`: 512Mi, 250m, 1Gi, 500m
+        - `liveness-prometheus`: 128Mi, 50m, 256Mi, 100m
+      - `CSI_CEPHFS_PROVISIONER_RESOURCE`
+        - `csi-provisioner`: 128Mi, 100m, 256Mi, 200m
+        - `csi-resizer`: 128Mi, 100m, 256Mi, 200m
+        - `csi-attacher`: 128Mi, 100m, 256Mi, 200m
+        - `csi-snapshotter`: 128Mi, 100m, 256Mi, 200m
+        - `csi-cephfspugin`: 512Mi, 250m, 1Gi, 500m
+        - `liveness-prometheus`: 128Mi, 50m, 256Mi, 100m
+      - `CSI_CEPHFS_PLUGIN_RESOURCE`
+        - `driver-registrar`: 128Mi, 50m, 256Mi, 100m
+        - `csi-cephfspugin`: 512Mi, 250m, 1Gi, 500m
+        - `liveness-prometheus`: 128Mi, 50m, 256Mi, 100m
 5. 권장사항 확인이 필요합니다.
   - 각 노드마다 OSD를 배포하도록 권장 (Taint 걸린 host 없는 걸 확인해야함)
   - 총 OSD 개수는 3개 이상으로 권장
