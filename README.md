@@ -209,9 +209,9 @@
   - hcsctl binary는 `/manifest` directory 안에 존재합니다.
 
   ``` shell
-  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
-  $ wget https://github.com/tmax-cloud/install-rookceph/manifest/rook.test # (optional) rook test binary로 설치 검증할 경우
-  $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/manifest/test-manifests # (optional) rook test binary로 설치 검증할 경우
+  $ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/hcsctl
+  $ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/rook.test # (optional) rook test binary로 설치 검증할 경우
+  $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/test-manifests # (optional) rook test binary로 설치 검증할 경우
   ```
 
   - `cluster.yaml` [설정 안내 파일](https://github.com/tmax-cloud/hypercloud-sds/blob/release-1.4/docs/ceph-cluster-setting.md)을 다운로드 합니다.
@@ -267,7 +267,7 @@ $ sudo docker push ${REGISTRY}/k8scsi/snapshot-controller:${SNAPSHOT_CONTROLLER_
 > 폐쇄망이 아닌 일반 설치용 hcsctl binary는 `/manifest` directory 안에 존재합니다.
 
 ``` shell
-$ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
+$ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/hcsctl
 ```
 
 0. [rook yaml 생성](#Step-0-rook-yaml-생성)
@@ -360,14 +360,14 @@ $ wget https://github.com/tmax-cloud/install-rookceph/manifest/hcsctl
 	  - 정상 사용 가능 여부 확인을 위해, 여러 시나리오 테스트를 수행할 수 있습니다.
     - `manifest/test-manifests` 의 yaml 파일들이 필요합니다.
     ``` shell
-    $ wget https://github.com/tmax-cloud/install-rookceph/manifest/rook.test
-    $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/manifest/test-manifests
+    $ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/rook.test
+    $ wget --recursive --no-parent https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/test-manifests
     $ ./rook.test
     ```
   - ./cdi.test
     - cdi test는 폐쇄망 환경에서 사용하실 수 없습니다.
     ``` shell
-    $ wget https://github.com/tmax-cloud/install-rookceph/manifest/cdi.test
+    $ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/cdi.test
     $ ./cdi.test
     ```
 - 비고 :
