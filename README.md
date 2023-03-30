@@ -404,6 +404,8 @@ $ wget https://github.com/tmax-cloud/install-rookceph/raw/main/manifest/hcsctl
 	  - osd의 backend가 device인 경우 (backend device 예시: sdb)
 		- device의 파티션 정보 제거
 		  - sudo sgdisk --zap-all /dev/sdb
+		  - 가끔 sgdisk 수행해도 device에 metadata가 남아서 재설치시 osd 생성 안 될 수도 있음 (rook-ceph-osd-prepare-{node} pod의 log 확인). 그 때는 wipefs 수행 필요 (sgdisk, wipefs는 같은 기능)
+		  	- sudo wipefs -a /dev/sdb
 		- device mapper에 남아있는 ceph-volume 정보 제거 (각 노드당 한 번씩만 수행하면 됨)
 		  - sudo ls /dev/mapper/ceph-* | sudo xargs -I% -- dmsetup remove %
 		- /dev에 남아있는 찌꺼기 파일 제거
